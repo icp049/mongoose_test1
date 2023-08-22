@@ -20,3 +20,16 @@ mongoose.connect(mongoURL, {
 }).catch((error) => {
   console.error('Error connecting to MongoDB:', error);
 });
+
+
+const express = require('express');
+const passport = require('passport');
+const router = express.Router();
+router.get('/login', (req, res) => {
+  res.render('login');
+});
+router.post('/login', passport.authenticate('local', {
+  successRedirect: '/landingpage',
+  failureRedirect: '/login',
+  failureFlash: true
+}));

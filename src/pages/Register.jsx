@@ -20,6 +20,7 @@ const Register = () => {
       const formData = new FormData();
       formData.append("displayName", displayName);
       formData.append("email", email);
+      formData.append("password",password)
       formData.append("avatar", file);
 
       // Make a POST request to your server's registration endpoint

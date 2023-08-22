@@ -3,9 +3,12 @@ import "./style.scss";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 function App() {
   return (
-    <div>
-<Register/>
-    </div>
+    <BrowserRouter>
+    <Routes>
+          <Route path="/" element={<Register />} />
+          
+      </Routes>
+    </BrowserRouter>
   );
 }
 

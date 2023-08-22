@@ -24,7 +24,7 @@ const Register = () => {
       formData.append("avatar", file);
 
       // Make a POST request to your server's registration endpoint
-      await axios.post("your-server-url/register", formData);
+      await axios.post("http://localhost:3000/register", formData);
 
       // Registration successful, navigate to another page
       navigate("/");

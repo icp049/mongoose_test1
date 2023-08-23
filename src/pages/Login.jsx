@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
-  const [err, setErr] = useState(false);
+  const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -19,15 +19,15 @@ const Login = () => {
         password,
       });
 
-      if (response.status === 200) {
-        // Authentication successful, navigate to the landing page
-        navigate("/landingpage");
-      } else {
-        setErr(true);
-      }
+      // If the response is successful, the server has handled the authentication.
+      // You can directly navigate to the landing page on the server's response.
     } catch (err) {
       console.log(err);
-      setErr(true);
+      if (err.response && err.response.data.message) {
+        setErr(err.response.data.message); // Display the error message from the server
+      } else {
+        setErr("Authentication failed. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -39,14 +39,14 @@ const Login = () => {
         <span className="logo">Prototype</span>
         <span className="title">Login</span>
         <form onSubmit={handleSubmit}>
-          <input type="email" placeholder="email" required />
-          <input type="password" placeholder="password" required />
+          <input type="email" placeholder="Email" required />
+          <input type="password" placeholder="Password" required />
           <button disabled={loading}>Sign in</button>
           {loading && "Logging in, please wait..."}
-          {err && <span>Authentication failed. Please check your credentials.</span>}
+          {err && <span>{err}</span>} {/* Display the error message */}
         </form>
         <p>
-          You don't have an account? <Link to="/register">Register</Link>
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

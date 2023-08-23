@@ -1,15 +1,14 @@
 require('dotenv').config(); // Load environment variables from .env file
 
-
-
-
 const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const { Readable } = require("stream");
-
-
+const passport = require("passport"); // Add this line
+const LocalStrategy = require("passport-local").Strategy; // Add this line
+const session = require("express-session"); // Add this line
+const bcrypt = require("bcrypt"); // Add this line
 
 const app = express();
 const port = 3000;
@@ -40,61 +39,56 @@ db.once("open", () => {
 const userSchema = new mongoose.Schema({
   displayName: String,
   email: String,
-  photoURL: String, // Store the GridFS ObjectID here
+  password: String, // Add this field for storing hashed password
+  photoURL: String,
 });
 
 const User = mongoose.model("User", userSchema);
 
 app.use(express.json());
+app.use(session({ secret: "your-secret-key", resave: false, saveUninitialized: true })); // Add this line
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Express route for user registration
-app.post("/register", upload.single("avatar"), async (req, res) => {
-  const { displayName, email } = req.body;
-  const file = req.file;
+// Passport.js configuration
+passport.use(new LocalStrategy({ usernameField: "email" }, authenticateUser));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
+// Custom authentication function
+async function authenticateUser(email, password, done) {
   try {
-    // Create a new user instance
-    const newUser = new User({
-      displayName,
-      email,
-      photoURL: "", // Placeholder for the GridFS ObjectID
-    });
+    const user = await User.findOne({ email });
 
-    // Save the user to the database
-    await newUser.save();
-
-    if (file) {
-      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db);
-
-      // Create a readable stream from the uploaded file buffer
-      const readableStream = new Readable();
-      readableStream.push(file.buffer);
-      readableStream.push(null);
-
-      // Upload the image using GridFS
-      const uploadStream = bucket.openUploadStream(file.originalname);
-      readableStream.pipe(uploadStream);
-
-      uploadStream.on("finish", async () => {
-        // Update the newUser's photoURL field with the GridFS ObjectID
-        newUser.photoURL = uploadStream.id;
-
-        // Update the user in the database to store the photoURL
-        await newUser.save();
-
-        res.status(200).json({ message: "User registered successfully" });
-      });
-    } else {
-      res.status(200).json({ message: "User registered successfully" });
+    if (!user) {
+      return done(null, false, { message: "No user with that email" });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error registering user" });
+
+    // Compare hashed passwords
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (passwordMatch) {
+      return done(null, user);
+    } else {
+      return done(null, false, { message: "Password incorrect" });
+    }
+  } catch (error) {
+    return done(error);
   }
+}
+
+// Express route for user registration (same as before)
+app.post("/register", upload.single("avatar"), async (req, res) => {
+  // ... Your existing registration route code ...
 });
 
+// Authentication route
+app.post("/login", passport.authenticate("local", {
+  successRedirect: "/landingpage", // Redirect on successful login
+  failureRedirect: "/login", // Redirect on failed login
+}));
 
-
+// ... Other routes and middleware ...
 
 server.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);

@@ -7,7 +7,7 @@ const http = require("http");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const { Readable } = require("stream");
-const User = require("./UserModel"); // Import the User model
+const User = require("./UserModel"); // Import the User modelscasc
 
 const app = express();
 const port = 3000;

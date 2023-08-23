@@ -1,8 +1,13 @@
+require('dotenv').config();
+
+
+
 const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const User = require("./UserModel");
+const cors = require("cors");
 
 const app = express();
 const port = 3000;
@@ -25,11 +30,16 @@ db.once("open", () => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  secret: "your-secret-key",
-  resave: false,
-  saveUninitialized: false,
-}));
+app.use(
+  session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Allow requests from all origins during development
+app.use(cors({ origin: "http://localhost:3008", credentials: true }));
 
 // Register route
 app.post("/register", async (req, res) => {
@@ -71,10 +81,14 @@ app.post("/login", async (req, res) => {
   }
 });
 
+
+
 // Profile route (protected)
 app.get("/landingpage", isAuthenticated, (req, res) => {
   res.send("Welcome to your profile");
 });
+
+
 
 function isAuthenticated(req, res, next) {
   if (req.session.userId) {

@@ -5,13 +5,13 @@ import { useNavigate, Link } from "react-router-dom";
 const Login = () => {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
-    const email = e.target[0].value;
-    const password = e.target[1].value;
+    setLoading(true);
 
     try {
       const response = await axios.post("http://localhost:3000/login", {
@@ -19,12 +19,16 @@ const Login = () => {
         password,
       });
 
-      // If the response is successful, the server has handled the authentication.
-      // You can directly navigate to the landing page on the server's response.
+      console.log("Response:", response);
+
+      if (response.status === 200) {
+        console.log("Successful login");
+        navigate("/landingpage"); // Redirect on successful login
+      }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       if (err.response && err.response.data.message) {
-        setErr(err.response.data.message); // Display the error message from the server
+        setErr(err.response.data.message);
       } else {
         setErr("Authentication failed. Please check your credentials.");
       }
@@ -39,11 +43,24 @@ const Login = () => {
         <span className="logo">Prototype</span>
         <span className="title">Login</span>
         <form onSubmit={handleSubmit}>
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Password" required />
-          <button disabled={loading}>Sign in</button>
-          {loading && "Logging in, please wait..."}
-          {err && <span>{err}</span>} {/* Display the error message */}
+          <input
+            type="email"
+            placeholder="Email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button disabled={loading}>
+            {loading ? "Logging in..." : "Sign in"}
+          </button>
+          {err && <span className="error">{err}</span>}
         </form>
         <p>
           Don't have an account? <Link to="/register">Register</Link>
